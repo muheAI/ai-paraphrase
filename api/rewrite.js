@@ -8,9 +8,9 @@ export default async function handler(req, res) {
   }
 
   const LLM_API_KEY = process.env.LLM_API_KEY;
-  const LLM_API_URL = process.env.LLM_API_URL || "https://api.openai.com/v1/chat/completions";
-  if (!LLM_API_KEY) {
-    return res.status(500).json({ error: "服务端缺少API_KEY环境变量" });
+  const LLM_API_URL = process.env.LLM_API_URL;
+  if (!LLM_API_KEY || !LLM_API_URL) {
+    return res.status(500).json({ error: "服务端缺少环境变量" });
   }
 
   try {
@@ -21,7 +21,7 @@ export default async function handler(req, res) {
         "Authorization": `Bearer ${LLM_API_KEY}`
       },
       body: JSON.stringify({
-        model: "gpt-3.5-turbo",
+        model: "qwen-turbo",
         messages: [{ role: "user", content: `Paraphrase this text: ${text}` }]
       })
     });
