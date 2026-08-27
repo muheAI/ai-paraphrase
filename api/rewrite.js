@@ -69,8 +69,12 @@ export default async function handler(req, res) {
 
   const payload = {
     model: "qwen-turbo",
-    messages: [{ role: "user", content: "Paraphrase and rewrite this text: " + text }]
-  };
+   messages: [{
+  role: "user",
+  content: `对下面原文做高质量改写润色，提升表达质感，措辞得体高级，理顺逻辑，完整保留全部原意，不编造新增内容。直接输出改写后的成品文字，不要任何解释、开场白。
+原文：${text}`
+}]
+
 
   let fetchRes;
   try {
