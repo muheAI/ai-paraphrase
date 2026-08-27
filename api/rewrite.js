@@ -2,11 +2,9 @@ export const config = {
   runtime: "edge"
 };
 
-const ipRecord = new Map();
+const ipMinuteRecord = new Map();
 const RATE_LIMIT_MINUTE = 2;
-const RATE_LIMIT_DAY = 3;
 const MS_ONE_MINUTE = 60 * 1000;
-const MS_ONE_DAY = 24 * 60 * 60 * 1000;
 
 async function fetchWithRetry(url, options, retries=1){
   let lastErr;
@@ -30,28 +28,22 @@ export default async function handler(req) {
   const ip = req.headers.get("x-forwarded-for") || "unknown";
   const now = Date.now();
 
-  if (!ipRecord.has(ip)) {
-    ipRecord.set(ip, { countMin:0, tsMin:now, countDay:0, tsDay:now });
+  // 仅做1分钟短时限流，失败不扣次数
+  if (!ipMinuteRecord.has(ip)) {
+    ipMinuteRecord.set(ip, { countMin:0, tsMin:now });
   }
-  const rec = ipRecord.get(ip);
+  const rec = ipMinuteRecord.get(ip);
 
   if (now - rec.tsMin > MS_ONE_MINUTE) {
-    rec.countMin = 0; rec.tsMin = now;
-  }
-  if (now - rec.tsDay > MS_ONE_DAY) {
-    rec.countDay = 0; rec.tsDay = now;
+    rec.countMin = 0;
+    rec.tsMin = now;
   }
 
   if (rec.countMin >= RATE_LIMIT_MINUTE) {
     return Response.json({ error: "请求过于频繁，请稍后重试" }, { status:429 });
   }
-  if (rec.countDay >= RATE_LIMIT_DAY) {
-    return Response.json({ error: "今日使用次数已耗尽，请明天再来" }, { status:429 });
-  }
-
   rec.countMin += 1;
-  rec.countDay += 1;
-  ipRecord.set(ip, rec);
+  ipMinuteRecord.set(ip, rec);
 
   let body;
   try {
@@ -108,5 +100,6 @@ export default async function handler(req) {
     return Response.json({ error:"AI未生成有效内容" },{status:500});
   }
 
-  return Response.json({ result:content, remain: RATE_LIMIT_DAY-rec.countDay });
+  // 只有成功拿到AI结果，才返回剩余次数，后端不再做跨实例的全局IP单日计数
+  return Response.json({ result:content });
 }
