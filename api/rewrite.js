@@ -2,37 +2,44 @@ export const config = {
   runtime: "edge"
 };
 
-// Edge内存限流，实例重启会重置；必须搭配阿里云控制台设置每日额度上限做兜底
 const ipRecord = new Map();
-const RATE_LIMIT_MINUTE = 2;    // 同一个IP，1分钟最多2次请求
-const RATE_LIMIT_DAY = 3;       // 同一个IP，单日最多3次，和页面剩余次数对齐
+const RATE_LIMIT_MINUTE = 2;
+const RATE_LIMIT_DAY = 3;
 const MS_ONE_MINUTE = 60 * 1000;
 const MS_ONE_DAY = 24 * 60 * 60 * 1000;
 
+async function fetchWithRetry(url, options, retries=1){
+  let lastErr;
+  for(let i=0;i<=retries;i++){
+    try{
+      const res=await fetch(url,options);
+      if(res) return res;
+    }catch(e){
+      lastErr=e;
+      await new Promise(r=>setTimeout(r,800));
+    }
+  }
+  throw lastErr;
+}
+
 export default async function handler(req) {
   if (req.method !== "POST") {
-    return new Response(JSON.stringify({ error: "Method Not Allowed" }), { status: 405, headers:{"Content‑Type":"application/json"} });
+    return new Response(JSON.stringify({ error: "Method Not Allowed" }), { status: 405, headers:{"Content-Type":"application/json"} });
   }
 
-  // 获取访问者真实IP（Vercel Edge环境）
-  const ip = req.headers.get("x‑forwarded‑for") || "unknown";
+  const ip = req.headers.get("x-forwarded-for") || "unknown";
   const now = Date.now();
 
-  // IP限流逻辑
   if (!ipRecord.has(ip)) {
     ipRecord.set(ip, { countMin:0, tsMin:now, countDay:0, tsDay:now });
   }
   const rec = ipRecord.get(ip);
 
-  // 重置一分钟窗口
   if (now - rec.tsMin > MS_ONE_MINUTE) {
-    rec.countMin = 0;
-    rec.tsMin = now;
+    rec.countMin = 0; rec.tsMin = now;
   }
-  // 重置单日窗口
   if (now - rec.tsDay > MS_ONE_DAY) {
-    rec.countDay = 0;
-    rec.tsDay = now;
+    rec.countDay = 0; rec.tsDay = now;
   }
 
   if (rec.countMin >= RATE_LIMIT_MINUTE) {
@@ -54,39 +61,38 @@ export default async function handler(req) {
   }
 
   const { text } = body;
-  const MAX_CHAR = 5000;
+  const MAX_CHAR = 3000;
   if (!text || typeof text !== "string" || text.length > MAX_CHAR) {
-    return Response.json({ error:"文本不能为空且不能超过5000字符" },{status:400});
+    return Response.json({ error:"文本不能为空，最大3000字符" },{status:400});
   }
 
   const LLM_API_KEY = process.env.LLM_API_KEY;
   const LLM_API_URL = process.env.LLM_API_URL;
-  if (!LLM_API_KEY || !LLM_API_URL) {
+  if (!LLM_API_KEY||!LLM_API_URL) {
     return Response.json({ error:"服务暂时不可用" },{status:500});
   }
 
   const payload={
     model:"qwen-turbo",
-    messages:[{role:"user",content:`对下面文本做改写润色：${text}`}]
+    messages:[{role:"user",content:`Paraphrase and rewrite this text: ${text}`}]
   };
 
   let fetchRes;
   try {
-    fetchRes=await fetch(LLM_API_URL,{
+    fetchRes=await fetchWithRetry(LLM_API_URL,{
       method:"POST",
       headers:{
-        "Content‑Type":"application/json",
+        "Content-Type":"application/json",
         "Authorization":`Bearer ${LLM_API_KEY}`
       },
       body:JSON.stringify(payload),
-      signal:AbortSignal.timeout(25000)
-    });
+      signal:AbortSignal.timeout(28000)
+    },1);
   } catch(err) {
-    return Response.json({ error:"模型服务超时，请重试" },{status:503});
+    return Response.json({ error:"网络错误，请再试一次。" },{status:503});
   }
 
   if(!fetchRes.ok){
-    // 不把阿里云原始错误对外返回，防止泄露内部信息
     return Response.json({ error:"AI服务暂时异常，请稍后再试" },{status:fetchRes.status});
   }
 
@@ -102,5 +108,5 @@ export default async function handler(req) {
     return Response.json({ error:"AI未生成有效内容" },{status:500});
   }
 
-  return Response.json({ result:content, remain: RATE_LIMIT_DAY‑rec.countDay });
+  return Response.json({ result:content, remain: RATE_LIMIT_DAY-rec.countDay });
 }
