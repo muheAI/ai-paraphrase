@@ -21,15 +21,17 @@ export default async function handler(req, res) {
         "Authorization": `Bearer ${LLM_API_KEY}`
       },
       body: JSON.stringify({
-        model: "qwen-turbo",
-        messages: [{ role: "user", content: `Paraphrase this text: ${text}` }]
+        model: "qwen‑turbo",
+        messages: [{ role: "user", content: `对下面文本做改写润色：${text}` }]
       })
     });
 
+    const respText = await fetchRes.text();
     if (!fetchRes.ok) {
+      console.error("接口返回原始：", respText);
       return res.status(fetchRes.status).json({ error: `LLM接口错误 ${fetchRes.status}` });
     }
-    const data = await fetchRes.json();
+    const data = JSON.parse(respText);
     const content = data?.choices?.[0]?.message?.content;
     if (!content) {
       return res.status(500).json({ error: "模型没有返回内容" });
