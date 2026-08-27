@@ -10,18 +10,21 @@ export default async function handler(req, res) {
 
   const API_KEY = process.env.API_KEY;
   if (!API_KEY) {
-    return res.status(500).json({ error: "服务器异常，请稍后再试" });
+    return res.status(500).json({ error: "❌环境变量API_KEY为空" });
   }
 
   try {
-    const resp = await fetch("https://ark.cn-beijing.volces.com/api/v3/chat/completions", {
+    // 这里填你截图上那串OpenAI‑compatible地址，结尾带上 /chat/completions
+    const baseUrl = "https://ws‑67aou7vzfo495m82.cn‑beijing.maas.aliyuncs.com/compatible‑mode/v1/chat/completions";
+
+    const resp = await fetch(baseUrl, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
+        "Content‑Type": "application/json",
         "Authorization": `Bearer ${API_KEY}`
       },
       body: JSON.stringify({
-        model: "doubao-pro-4k",
+        model: "qwen‑plus",
         messages: [
           {
             role: "system",
@@ -35,6 +38,7 @@ export default async function handler(req, res) {
 
     const data = await resp.json();
     if (!resp.ok) {
+      console.error("API返回错误", data);
       return res.status(500).json({ error: "服务器异常，请稍后再试" });
     }
 
@@ -46,5 +50,4 @@ export default async function handler(req, res) {
     res.status(500).json({ error: "服务器异常，请稍后再试" });
   }
 }
-
 
