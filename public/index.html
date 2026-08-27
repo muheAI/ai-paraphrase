@@ -1,172 +1,199 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Free AI Paraphraser</title>
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: Arial, sans-serif;
-        }
-        body {
-            max-width: 800px;
-            margin: 40px auto;
-            padding: 0 20px;
-            background: #f9f9f9;
-        }
-        .box {
-            background: white;
-            padding: 24px;
-            border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
-        }
-        h2 {
-            margin-bottom: 8px;
-        }
-        textarea {
-            width: 100%;
-            height: 180px;
-            padding: 12px;
-            margin: 10px 0;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            resize: vertical;
-            font-size: 14px;
-        }
-        button {
-            background: #007bff;
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 15px;
-            transition: background 0.2s;
-        }
-        button:hover:not(:disabled) {
-            background: #0056b3;
-        }
-        button:disabled {
-            background: #aaa;
-            cursor: not-allowed;
-        }
-        .result {
-            margin-top: 20px;
-            padding: 16px;
-            background: #f1f1f1;
-            border-radius: 8px;
-            min-height: 100px;
-            white-space: pre-wrap;
-            word-break: break-word;
-            font-size: 14px;
-            line-height: 1.6;
-        }
-        .wa {
-            margin-top: 20px;
-            text-align: center;
-            color: #333;
-            font-size: 14px;
-        }
-        .wa a {
-            color: #25D366;
-            font-weight: bold;
-            text-decoration: none;
-        }
-        .wa a:hover {
-            text-decoration: underline;
-        }
-        .limit {
-            color: #666;
-            font-size: 14px;
-            margin-bottom: 10px;
-        }
-        .counter {
-            color: #888;
-            font-size: 13px;
-            margin-top: 8px;
-        }
-        .error {
-            color: #d9534f;
-        }
-        .hint {
-            color: #f0ad4e;
-            font-size: 13px;
-            margin-top: 6px;
-            display: none;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Paraphraser</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: #f5f7fa;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .container {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    padding: 32px;
+    width: 100%;
+    max-width: 720px;
+  }
+  h1 { font-size: 24px; margin-bottom: 8px; color: #1a1a2e; }
+  .subtitle { color: #666; font-size: 14px; margin-bottom: 24px; }
+  .quota {
+    display: inline-block;
+    background: #e8f4fd;
+    color: #1890ff;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    margin-bottom: 16px;
+  }
+  textarea {
+    width: 100%;
+    min-height: 140px;
+    border: 1px solid #d9d9d9;
+    border-radius: 10px;
+    padding: 14px;
+    font-size: 15px;
+    resize: vertical;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  textarea:focus { border-color: #1890ff; }
+  .btn-row { margin-top: 16px; display: flex; gap: 12px; }
+  button {
+    flex: 1;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  .btn-primary { background: #1890ff; color: #fff; }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-secondary { background: #f0f0f0; color: #333; flex: 0 0 auto; }
+  .result-box {
+    margin-top: 20px;
+    padding: 16px;
+    background: #f9f9f9;
+    border-radius: 10px;
+    border: 1px solid #eee;
+    min-height: 60px;
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-size: 15px;
+    line-height: 1.6;
+    display: none;
+  }
+  .result-box.show { display: block; }
+  .error-msg {
+    margin-top: 12px;
+    color: #ff4d4f;
+    font-size: 14px;
+    display: none;
+  }
+  .error-msg.show { display: block; }
+  .loading { color: #999; font-style: italic; }
+</style>
 </head>
 <body>
-    <div class="box">
-        <h2>Free AI Paraphraser | Rewrite Text</h2>
-        <p class="limit">Free daily uses, no login needed</p>
-        <textarea id="input" placeholder="Paste your text here..." maxlength="5000"></textarea>
-        <p class="hint" id="hint">Text is too long. Maximum 5000 characters.</p>
-        <button id="btn">Paraphrase</button>
-        <p class="counter" id="counter"></p>
-        <div class="result" id="result"></div>
-    </div>
+<div class="container">
+  <h1>AI Paraphraser</h1>
+  <p class="subtitle">Enter text below and get an AI-paraphrased version.</p>
+  <div class="quota" id="quotaLabel">Remaining today: 3 / 3</div>
+  <textarea id="inputText" placeholder="Type or paste your text here..."></textarea>
+  <div class="btn-row">
+    <button class="btn-primary" id="submitBtn" onclick="doParaphrase()">Paraphrase</button>
+    <button class="btn-secondary" onclick="clearAll()">Clear</button>
+  </div>
+  <div class="error-msg" id="errorMsg"></div>
+  <div class="result-box" id="resultBox"></div>
+</div>
 
-    <div class="wa">
-        Unlimited use &amp; API Key → WhatsApp:
-        <a href="https://wa.me/8619841322006" target="_blank" rel="noopener noreferrer">Chat on WhatsApp</a>
-    </div>
+<script>
+  const MAX_DAILY = 3;
 
-    <script>
-        const btn = document.getElementById("btn");
-        const inputEl = document.getElementById("input");
-        const resultEl = document.getElementById("result");
-        const counterEl = document.getElementById("counter");
-        const hintEl = document.getElementById("hint");
+  function getUsage() {
+    let info;
+    try {
+      info = JSON.parse(localStorage.getItem("ai_para_usage") || '{"date":"","used":0}');
+    } catch (e) {
+      info = { date: "", used: 0 };
+    }
+    const today = new Date().toDateString();
+    if (info.date !== today) {
+      info = { date: today, used: 0 };
+    }
+    return info;
+  }
 
-        async function loadQuota(){
-            try {
-                const res = await fetch("/api/quota");
-                const json = await res.json();
-                counterEl.innerText = `Remaining today: ${json.remain} / ${json.limit}`;
-            }catch(e){
-                counterEl.innerText = "无法获取额度";
-            }
-        }
+  function saveUsage(u) {
+    localStorage.setItem("ai_para_usage", JSON.stringify(u));
+  }
 
-        btn.onclick = async function(){
-            resultEl.classList.remove("error");
-            const text = inputEl.value.trim();
-            if(!text){
-                hintEl.innerText = "Please enter some text first.";
-                hintEl.style.display = "block";
-                return;
-            }
-            hintEl.style.display = "none";
-            btn.disabled = true;
-            btn.innerText = "Processing...";
-            resultEl.innerText = "Processing...";
-            try{
-                const res = await fetch("/api/rewrite",{
-                    method:"POST",
-                    headers:{"Content-Type":"application/json"},
-                    body:JSON.stringify({text:text})
-                });
-                const json = await res.json();
-                if(!res.ok){
-                    resultEl.classList.add("error");
-                    resultEl.innerText = json.error || "Request failed";
-                }else{
-                    resultEl.innerText = json.result;
-                }
-                await loadQuota();
-            }catch(err){
-                resultEl.classList.add("error");
-                resultEl.innerText = "Network error, please try again.";
-            }finally{
-                btn.disabled = false;
-                btn.innerText = "Paraphrase";
-            }
-        }
-        loadQuota();
-    </script>
+  function updateQuotaLabel() {
+    const u = getUsage();
+    const remain = Math.max(0, MAX_DAILY - u.used);
+    document.getElementById("quotaLabel").textContent = "Remaining today: " + remain + " / " + MAX_DAILY;
+  }
+
+  function showError(msg) {
+    const el = document.getElementById("errorMsg");
+    el.textContent = msg;
+    el.classList.add("show");
+  }
+
+  function hideError() {
+    document.getElementById("errorMsg").classList.remove("show");
+  }
+
+  async function doParaphrase() {
+    hideError();
+    const text = document.getElementById("inputText").value.trim();
+    if (!text) {
+      showError("Please enter some text first.");
+      return;
+    }
+
+    const usage = getUsage();
+    if (usage.used >= MAX_DAILY) {
+      showError("Daily limit reached. Please try again tomorrow.");
+      return;
+    }
+
+    const btn = document.getElementById("submitBtn");
+    const resultBox = document.getElementById("resultBox");
+    btn.disabled = true;
+    btn.textContent = "Processing...";
+    resultBox.classList.add("show");
+    resultBox.innerHTML = '<span class="loading">AI is working on it...</span>';
+
+    try {
+      const res = await fetch("/api/rewrite", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: text })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        showError(data.error || "Request failed, please try again.");
+        resultBox.classList.remove("show");
+        return;
+      }
+
+      // 只有成功才扣次数
+      usage.used += 1;
+      saveUsage(usage);
+      updateQuotaLabel();
+
+      resultBox.textContent = data.result;
+    } catch (e) {
+      showError("Network error, please try again.");
+      resultBox.classList.remove("show");
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "Paraphrase";
+    }
+  }
+
+  function clearAll() {
+    document.getElementById("inputText").value = "";
+    document.getElementById("resultBox").classList.remove("show");
+    document.getElementById("resultBox").textContent = "";
+    hideError();
+  }
+
+  // 页面加载时刷新次数显示
+  updateQuotaLabel();
+</script>
 </body>
 </html>
