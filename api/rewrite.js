@@ -1,5 +1,6 @@
 export const config = {
-  runtime: "edge"
+  runtime: "nodejs",
+  maxDuration:30
 };
 
 const ipMinuteRecord = new Map();
@@ -67,7 +68,7 @@ export default async function handler(req) {
   }
 
   const payload = {
-    model: "qwen-turbo",
+    model: "qwen‑turbo",
     messages: [{ role: "user", content: `Paraphrase and rewrite this text: ${text}` }]
   };
 
@@ -76,7 +77,7 @@ export default async function handler(req) {
     fetchRes = await fetchWithRetry(LLM_API_URL, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
+        "Content‑Type": "application/json",
         "Authorization": `Bearer ${LLM_API_KEY}`
       },
       body: JSON.stringify(payload),
