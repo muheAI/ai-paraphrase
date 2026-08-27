@@ -1,199 +1,199 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh‑CN">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AI Paraphraser</title>
+<meta charset="UTF‑8">
+<meta name="viewport" content="width=device‑width, initial‑scale=1.0">
+<title>AI释义器</title>
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    background: #f5f7fa;
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-  }
-  .container {
-    background: #fff;
-    border-radius: 16px;
-    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
-    padding: 32px;
-    width: 100%;
-    max-width: 720px;
-  }
-  h1 { font-size: 24px; margin-bottom: 8px; color: #1a1a2e; }
-  .subtitle { color: #666; font-size: 14px; margin-bottom: 24px; }
-  .quota {
-    display: inline-block;
-    background: #e8f4fd;
-    color: #1890ff;
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 13px;
-    margin-bottom: 16px;
-  }
-  textarea {
-    width: 100%;
-    min-height: 140px;
-    border: 1px solid #d9d9d9;
-    border-radius: 10px;
-    padding: 14px;
-    font-size: 15px;
-    resize: vertical;
-    outline: none;
-    transition: border-color 0.2s;
-  }
-  textarea:focus { border-color: #1890ff; }
-  .btn-row { margin-top: 16px; display: flex; gap: 12px; }
-  button {
-    flex: 1;
-    padding: 12px 24px;
-    border: none;
-    border-radius: 10px;
-    font-size: 15px;
-    cursor: pointer;
-    transition: opacity 0.2s;
-  }
-  .btn-primary { background: #1890ff; color: #fff; }
-  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
-  .btn-secondary { background: #f0f0f0; color: #333; flex: 0 0 auto; }
-  .result-box {
-    margin-top: 20px;
-    padding: 16px;
-    background: #f9f9f9;
-    border-radius: 10px;
-    border: 1px solid #eee;
-    min-height: 60px;
-    white-space: pre-wrap;
-    word-break: break-word;
-    font-size: 15px;
-    line-height: 1.6;
-    display: none;
-  }
-  .result-box.show { display: block; }
-  .error-msg {
-    margin-top: 12px;
-    color: #ff4d4f;
-    font-size: 14px;
-    display: none;
-  }
-  .error-msg.show { display: block; }
-  .loading { color: #999; font-style: italic; }
+*{margin:0;padding:0;box‑sizing:border‑box;}
+body{
+  font‑family:‑apple‑system,BlinkMacSystemFont,Segoe UI,Roboto,sans‑serif;
+  background:#f5f7fa;
+  min‑height:100vh;
+  display:flex;
+  align‑items:center;
+  justify‑content:center;
+  padding:20px;
+}
+.wrap{
+  background:#fff;
+  border‑radius:16px;
+  box‑shadow:0 4px 24px rgba(0,0,0,0.08);
+  padding:32px;
+  width:100%;
+  max‑width:720px;
+}
+h1{font‑size:26px;margin‑bottom:8px;color:#111;}
+.desc{color:#555;margin‑bottom:16px;font‑size:15px;}
+.quota{
+  display:inline‑block;
+  background:#e8f4fd;
+  color:#1890ff;
+  padding:4px 12px;
+  border‑radius:20px;
+  font‑size:14px;
+  margin‑bottom:16px;
+}
+textarea{
+  width:100%;
+  min‑height:140px;
+  border:1px solid #b8d4f5;
+  border‑radius:10px;
+  padding:14px;
+  font‑size:16px;
+  resize:vertical;
+  outline:none;
+}
+.btns{
+  display:flex;
+  gap:12px;
+  margin‑top:18px;
+}
+#submitBtn{
+  flex:1;
+  padding:13px;
+  background:#2b78e4;
+  color:#fff;
+  border:none;
+  border‑radius:10px;
+  font‑size:16px;
+  cursor:pointer;
+}
+#submitBtn:disabled{opacity:0.55;}
+#clearBtn{
+  padding:13px 22px;
+  border:none;
+  background:#e9e9eb;
+  border‑radius:10px;
+  cursor:pointer;
+  font‑size:15px;
+}
+.err{
+  margin‑top:14px;
+  color:#e53935;
+  font‑size:14px;
+  display:none;
+}
+.err.show{display:block;}
+.result{
+  margin‑top:20px;
+  padding:16px;
+  background:#f7f8fa;
+  border‑radius:10px;
+  white‑space:pre‑wrap;
+  line‑height:1.6;
+  display:none;
+}
+.result.show{display:block;}
+.footer‑link{
+  margin‑top:30px;
+  text‑align:center;
+  font‑size:14px;
+}
+.footer‑link a{color:#0088cc;text‑decoration:none;}
 </style>
 </head>
 <body>
-<div class="container">
-  <h1>AI Paraphraser</h1>
-  <p class="subtitle">Enter text below and get an AI-paraphrased version.</p>
-  <div class="quota" id="quotaLabel">Remaining today: 3 / 3</div>
-  <textarea id="inputText" placeholder="Type or paste your text here..."></textarea>
-  <div class="btn-row">
-    <button class="btn-primary" id="submitBtn" onclick="doParaphrase()">Paraphrase</button>
-    <button class="btn-secondary" onclick="clearAll()">Clear</button>
+<div class="wrap">
+  <h1>AI释义器</h1>
+  <p class="desc">在下方输入文字，即可获得AI改写版本。</p>
+  <div class="quota" id="quotaLabel">至今剩余：3 / 3</div>
+  <textarea id="inputText" placeholder="请输入需要改写的文本..."></textarea>
+  <div class="btns">
+    <button id="submitBtn" onclick="doRewrite()">意译</button>
+    <button id="clearBtn" onclick="clearAll()">清场</button>
   </div>
-  <div class="error-msg" id="errorMsg"></div>
-  <div class="result-box" id="resultBox"></div>
+  <div class="err" id="errorBox"></div>
+  <div class="result" id="resultBox"></div>
+  <div class="footer‑link">
+    <a href="https://wa.me/你的whatsapp号码" target="_blank">WhatsApp无限使用及API密钥 → WhatsApp聊天</a>
+  </div>
 </div>
 
 <script>
-  const MAX_DAILY = 3;
+const MAX_DAILY = 3;
 
-  function getUsage() {
-    let info;
-    try {
-      info = JSON.parse(localStorage.getItem("ai_para_usage") || '{"date":"","used":0}');
-    } catch (e) {
-      info = { date: "", used: 0 };
-    }
-    const today = new Date().toDateString();
-    if (info.date !== today) {
-      info = { date: today, used: 0 };
-    }
-    return info;
+function getUsage(){
+  let info;
+  try{
+    info=JSON.parse(localStorage.getItem("ai_para_usage")||'{"date":"","used":0}');
+  }catch(e){
+    info={date:"",used:0};
+  }
+  const today=new Date().toDateString();
+  if(info.date!==today) info={date:today,used:0};
+  return info;
+}
+
+function saveUsage(u){
+  localStorage.setItem("ai_para_usage",JSON.stringify(u));
+}
+
+function updateQuota(){
+  const u=getUsage();
+  const rem=Math.max(0,MAX_DAILY‑u.used);
+  document.getElementById("quotaLabel").textContent="至今剩余："+rem+" / "+MAX_DAILY;
+}
+
+function showErr(msg){
+  const el=document.getElementById("errorBox");
+  el.textContent=msg;
+  el.classList.add("show");
+}
+function hideErr(){
+  document.getElementById("errorBox").classList.remove("show");
+}
+
+async function doRewrite(){
+  hideErr();
+  const txt=document.getElementById("inputText").value.trim();
+  if(!txt){showErr("请输入文本");return;}
+
+  const usage=getUsage();
+  if(usage.used>=MAX_DAILY){
+    showErr("今日使用次数已耗尽，请明天再来。");
+    return;
   }
 
-  function saveUsage(u) {
-    localStorage.setItem("ai_para_usage", JSON.stringify(u));
-  }
+  const btn=document.getElementById("submitBtn");
+  const resDom=document.getElementById("resultBox");
+  btn.disabled=true;
+  btn.textContent="处理中…";
+  resDom.classList.add("show");
+  resDom.innerText="AI正在生成…";
 
-  function updateQuotaLabel() {
-    const u = getUsage();
-    const remain = Math.max(0, MAX_DAILY - u.used);
-    document.getElementById("quotaLabel").textContent = "Remaining today: " + remain + " / " + MAX_DAILY;
-  }
-
-  function showError(msg) {
-    const el = document.getElementById("errorMsg");
-    el.textContent = msg;
-    el.classList.add("show");
-  }
-
-  function hideError() {
-    document.getElementById("errorMsg").classList.remove("show");
-  }
-
-  async function doParaphrase() {
-    hideError();
-    const text = document.getElementById("inputText").value.trim();
-    if (!text) {
-      showError("Please enter some text first.");
+  try{
+    const resp=await fetch("/api/rewrite",{
+      method:"POST",
+      headers:{"Content‑Type":"application/json"},
+      body:JSON.stringify({text:txt})
+    });
+    const data=await resp.json();
+    if(!resp.ok){
+      showErr(data.error||"请求失败");
+      resDom.classList.remove("show");
       return;
     }
-
-    const usage = getUsage();
-    if (usage.used >= MAX_DAILY) {
-      showError("Daily limit reached. Please try again tomorrow.");
-      return;
-    }
-
-    const btn = document.getElementById("submitBtn");
-    const resultBox = document.getElementById("resultBox");
-    btn.disabled = true;
-    btn.textContent = "Processing...";
-    resultBox.classList.add("show");
-    resultBox.innerHTML = '<span class="loading">AI is working on it...</span>';
-
-    try {
-      const res = await fetch("/api/rewrite", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: text })
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        showError(data.error || "Request failed, please try again.");
-        resultBox.classList.remove("show");
-        return;
-      }
-
-      // 只有成功才扣次数
-      usage.used += 1;
-      saveUsage(usage);
-      updateQuotaLabel();
-
-      resultBox.textContent = data.result;
-    } catch (e) {
-      showError("Network error, please try again.");
-      resultBox.classList.remove("show");
-    } finally {
-      btn.disabled = false;
-      btn.textContent = "Paraphrase";
-    }
+    usage.used+=1;
+    saveUsage(usage);
+    updateQuota();
+    resDom.innerText=data.result;
+  }catch(e){
+    showErr("网络错误，请再试一次。");
+    resDom.classList.remove("show");
+  }finally{
+    btn.disabled=false;
+    btn.textContent="意译";
   }
+}
 
-  function clearAll() {
-    document.getElementById("inputText").value = "";
-    document.getElementById("resultBox").classList.remove("show");
-    document.getElementById("resultBox").textContent = "";
-    hideError();
-  }
+function clearAll(){
+  document.getElementById("inputText").value="";
+  document.getElementById("resultBox").classList.remove("show");
+  hideErr();
+}
 
-  // 页面加载时刷新次数显示
-  updateQuotaLabel();
+updateQuota();
 </script>
 </body>
 </html>
